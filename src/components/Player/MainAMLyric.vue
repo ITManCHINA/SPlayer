@@ -4,7 +4,7 @@
       :key="amLyricsData?.[0]?.words?.length"
       :class="['lyric-am', { pure: statusStore.pureLyricMode }]"
       :style="{
-        '--amll-lp-color': 'rgb(var(--main-cover-color, 239 239 239))',
+        '--amll-lp-color': 'rgba(var(--main-cover-color, 255 255 255 0.95))',
         '--amll-lp-hover-bg-color': 'rgba(var(--main-cover-color), 0.08)',
       }"
     >
@@ -178,8 +178,6 @@ onBeforeUnmount(() => {
   :deep(.am-lyric .lyric-line.is-current) {
     /* 使用加法混合，叠加会更亮 */
     mix-blend-mode: plus-lighter;
-    /* 更亮的文字颜色（半透明白），便于加法叠加效果 */
-    color: rgba(255, 255, 255, 0.95);
     /* 轻微发光，配合混合模式效果更自然 */
     text-shadow: 0 2px 12px rgba(255, 255, 255, 0.06);
     /* 告诉浏览器该元素可能会变化，优化渲染 */
