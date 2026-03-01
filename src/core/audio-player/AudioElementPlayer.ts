@@ -49,6 +49,14 @@ export class AudioElementPlayer extends BaseAudioPlayer {
   protected onGraphInitialized(): void {
     if (!this.audioCtx || !this.inputNode) return;
 
+    console.log("%c[AudioPlayer] 🚀 音频图谱已初始化", "color: #4CAF50; font-weight: bold;");
+    console.table({
+      "模式 (latencyHint)": (this.audioCtx as any).latencyHint || "未设置",
+      "基础处理延迟 (baseLatency)": this.audioCtx.baseLatency.toFixed(4) + "s",
+      "硬件输出延迟 (outputLatency)": (this.audioCtx.outputLatency || 0).toFixed(4) + "s",
+      当前上下文状态: this.audioCtx.state,
+    });
+
     try {
       if (!this.sourceNode) {
         this.sourceNode = this.audioCtx.createMediaElementSource(this.audioElement);
@@ -192,11 +200,24 @@ export class AudioElementPlayer extends BaseAudioPlayer {
    * 获取当前播放时间（秒）
    * 如果正在 Seek，返回目标时间以避免进度跳回
    */
+  private debugCounter = 0;
+
   public get currentTime(): number {
     if (this.isInternalSeeking) {
       return this.targetSeekTime;
     }
-    return (this.audioElement.currentTime || 0) - this.compensatedLatency;
+    const rawTime = this.audioElement.currentTime || 0;
+
+    if (this.debugCounter++ % 200 === 0 && this.audioCtx) {
+      console.log(
+        `[Latency Check] 模式: ${(this.audioCtx as any).latencyHint} | ` +
+          `Base: ${this.audioCtx.baseLatency.toFixed(3)}s | ` +
+          `Output: ${(this.audioCtx.outputLatency || 0).toFixed(3)}s`,
+      );
+    }
+    return rawTime - this.compensatedLatency;
+
+    // return (this.audioElement.currentTime || 0) - this.compensatedLatency;
   }
 
   /** 获取是否暂停状态 */
