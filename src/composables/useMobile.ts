@@ -7,8 +7,8 @@ import { useBreakpoints, breakpointsTailwind } from "@vueuse/core";
 export const useMobile = () => {
   const breakpoints = useBreakpoints(breakpointsTailwind);
 
-  // 小于 lg (512px) 为小屏
-  const isSmall = useMediaQuery("(max-width: 511.98px)");
+  // 小于 lg (256px) 为小屏
+  const isSmall = useMediaQuery("(max-width: 255.98px)");
 
   // 小于 sm (640px) 为移动端
   const isMobile = breakpoints.smaller("sm");
@@ -26,7 +26,7 @@ export const useMobile = () => {
   const isLargeDesktop = breakpoints.greaterOrEqual("xl");
 
   return {
-    /** 是否为小屏 (< 512px) */
+    /** 是否为小屏 (< 256px) */
     isSmall,
     /** 是否为移动端 (< 640px) */
     isMobile,

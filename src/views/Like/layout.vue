@@ -125,8 +125,8 @@ watch(
       }
     }
   }
-  // 512px
-  @media (max-width: 512px) {
+  // 256px
+  @media (max-width: 256px) {
     .status {
       display: none !important;
     }

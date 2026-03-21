@@ -626,7 +626,7 @@ onUnmounted(() => {
     overflow: hidden;
     max-height: calc((var(--layout-height) - 132) * 1px);
   }
-  @media (max-width: 512px) {
+  @media (max-width: 256px) {
     .status {
       display: none !important;
     }

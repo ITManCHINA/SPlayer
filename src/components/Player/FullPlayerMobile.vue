@@ -328,7 +328,7 @@ const contentTransform = computed(() => {
               width: 10vh;
               top: -9.5vh;
             }
-            @media (max-width: 512px) {
+            @media (max-width: 256px) {
               width: 36vh;
               .cover-img {
                 width: 36vh;
