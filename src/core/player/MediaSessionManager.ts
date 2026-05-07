@@ -1,5 +1,4 @@
 import { useMusicStore, useSettingStore, useStatusStore } from "@/stores";
-import { CapacitorMusicControls } from "capacitor-music-controls-plugin";
 import { isCapacitor, isElectron } from "@/utils/env";
 import { getPlaySongData } from "@/utils/format";
 import { msToS } from "@/utils/time";
@@ -98,30 +97,6 @@ class MediaSessionManager {
 
     this.currentRate = statusStore.playRate;
 
-    if (isCapacitor) {
-      CapacitorMusicControls.addListener("controlsNotification", (info: any) => {
-        const message = typeof info.message === "string" ? info.message : "";
-        switch (message) {
-          case "music-controls-next":
-            player.nextOrPrev("next");
-            break;
-          case "music-controls-previous":
-            player.nextOrPrev("prev");
-            break;
-          case "music-controls-pause":
-            player.pause();
-            break;
-          case "music-controls-play":
-            player.play();
-            break;
-          case "music-controls-destroy":
-            player.pause();
-            break;
-        }
-      });
-      return;
-    }
-
     if (isElectron) {
       window.electron.ipcRenderer.removeAllListeners("media-event");
       window.electron.ipcRenderer.on("media-event", (_, event) => {
@@ -183,21 +158,6 @@ class MediaSessionManager {
     this.metadataAbortController = new AbortController();
     const { signal } = this.metadataAbortController;
     const metadata = this.buildMetadata(song);
-
-    if (isCapacitor) {
-      CapacitorMusicControls.create({
-        track: metadata.title,
-        artist: metadata.artist,
-        album: metadata.album,
-        cover: metadata.coverUrl,
-        hasPrev: true,
-        hasNext: true,
-        hasClose: true,
-        isPlaying: useStatusStore().playStatus,
-        duration: song.duration ? song.duration / 1000 : 0,
-      });
-      return;
-    }
 
     // 原生插件
     if (this.shouldUseNativeMedia() && settingStore.smtcOpen) {
@@ -332,14 +292,6 @@ class MediaSessionManager {
     const settingStore = useSettingStore();
     if (!settingStore.smtcOpen && !isCapacitor) return;
 
-    if (isCapacitor) {
-      CapacitorMusicControls.updateElapsed({
-        elapsed: position ? position / 1000 : 0,
-        isPlaying: useStatusStore().playStatus,
-      });
-      return;
-    }
-
     // 原生插件
     if (this.shouldUseNativeMedia()) {
       if (immediate) {
@@ -360,10 +312,6 @@ class MediaSessionManager {
    * 更新播放状态
    */
   public updatePlaybackStatus(isPlaying: boolean) {
-    if (isCapacitor) {
-      CapacitorMusicControls.updateIsPlaying({ isPlaying });
-      return;
-    }
 
     // 发送到原生插件
     if (this.shouldUseNativeMedia()) {

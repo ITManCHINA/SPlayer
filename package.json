@@ -64,7 +64,6 @@
     "axios": "^1.13.5",
     "axios-retry": "^4.5.0",
     "better-sqlite3": "^12.6.2",
-    "capacitor-music-controls-plugin": "^6.1.0",
     "change-case": "^5.4.4",
     "dayjs": "^1.11.19",
     "electron-store": "^11.0.2",
