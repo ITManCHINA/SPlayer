@@ -16,7 +16,7 @@ import { sendRegisterProtocol } from "@/utils/protocol";
 import "@/style/main.scss";
 import "@/style/animate.scss";
 import "github-markdown-css/github-markdown.css";
-import { isCapacitor, isElectron } from "./utils/env";
+import { isElectron } from "./utils/env";
 
 // 挂载
 const app = createApp(App);
