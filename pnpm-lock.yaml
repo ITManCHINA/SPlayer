@@ -30,6 +30,9 @@ importers:
       '@capacitor/preferences':
         specifier: ^8.0.1
         version: 8.0.1(@capacitor/core@8.3.1)
+      '@choreruiz/capacitor-node-js':
+        specifier: ^1.0.2
+        version: 1.0.2(@capacitor/core@8.3.1)
       '@electron-toolkit/preload':
         specifier: ^3.0.2
         version: 3.0.2(electron@39.4.0)
@@ -508,6 +511,11 @@ packages:
 
   '@capacitor/synapse@1.0.4':
     resolution: {integrity: sha512-/C1FUo8/OkKuAT4nCIu/34ny9siNHr9qtFezu4kxm6GY1wNFxrCFWjfYx5C1tUhVGz3fxBABegupkpjXvjCHrw==}
+
+  '@choreruiz/capacitor-node-js@1.0.2':
+    resolution: {integrity: sha512-cS5eifRABrKsQlRuhWDIdLRgQPYz6v2LtIfTWxUwrFoHd4Dl700LHLLCTRwFfxsD1rrSOFRtx/gaoh2LTe2nDQ==}
+    peerDependencies:
+      '@capacitor/core': '>=7.0.0'
 
   '@css-render/plugin-bem@0.15.14':
     resolution: {integrity: sha512-QK513CJ7yEQxm/P3EwsI+d+ha8kSOcjGvD6SevM41neEMxdULE+18iuQK6tEChAWMOQNQPLG/Rw3Khb69r5neg==}
@@ -6260,6 +6268,10 @@ snapshots:
       '@capacitor/core': 8.3.1
 
   '@capacitor/synapse@1.0.4': {}
+
+  '@choreruiz/capacitor-node-js@1.0.2(@capacitor/core@8.3.1)':
+    dependencies:
+      '@capacitor/core': 8.3.1
 
   '@css-render/plugin-bem@0.15.14(css-render@0.15.14)':
     dependencies:

@@ -13,7 +13,8 @@ let package = Package(
     dependencies: [
         .package(url: "https://github.com/ionic-team/capacitor-swift-pm.git", exact: "8.3.1"),
         .package(name: "CapacitorFilesystem", path: "..\..\..\node_modules\.pnpm\@capacitor+filesystem@8.1.2_@capacitor+core@8.3.1\node_modules\@capacitor\filesystem"),
-        .package(name: "CapacitorPreferences", path: "..\..\..\node_modules\.pnpm\@capacitor+preferences@8.0.1_@capacitor+core@8.3.1\node_modules\@capacitor\preferences")
+        .package(name: "CapacitorPreferences", path: "..\..\..\node_modules\.pnpm\@capacitor+preferences@8.0.1_@capacitor+core@8.3.1\node_modules\@capacitor\preferences"),
+        .package(name: "ChoreruizCapacitorNodeJs", path: "..\..\..\node_modules\.pnpm\@choreruiz+capacitor-node-js@1.0.2_@capacitor+core@8.3.1\node_modules\@choreruiz\capacitor-node-js")
     ],
     targets: [
         .target(
@@ -22,7 +23,8 @@ let package = Package(
                 .product(name: "Capacitor", package: "capacitor-swift-pm"),
                 .product(name: "Cordova", package: "capacitor-swift-pm"),
                 .product(name: "CapacitorFilesystem", package: "CapacitorFilesystem"),
-                .product(name: "CapacitorPreferences", package: "CapacitorPreferences")
+                .product(name: "CapacitorPreferences", package: "CapacitorPreferences"),
+                .product(name: "ChoreruizCapacitorNodeJs", package: "ChoreruizCapacitorNodeJs")
             ]
         )
     ]

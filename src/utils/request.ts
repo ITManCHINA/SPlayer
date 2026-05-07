@@ -1,12 +1,14 @@
 import axios, { AxiosInstance, AxiosRequestConfig, AxiosError, AxiosResponse } from "axios";
-import { isDev } from "./env";
+import { isDev, isCapacitor } from "./env";
 import { useSettingStore } from "@/stores";
 import { getCookie } from "./cookie";
 import { isLogin } from "./auth";
 import axiosRetry from "axios-retry";
 
 // 全局地址
-const baseURL: string = String(isDev ? "/api/netease" : import.meta.env["VITE_API_URL"]);
+const baseURL: string = isCapacitor
+  ? "http://127.0.0.1:25884/api/netease"
+  : String(isDev ? "/api/netease" : import.meta.env["VITE_API_URL"]);
 
 // 基础配置
 const server: AxiosInstance = axios.create({

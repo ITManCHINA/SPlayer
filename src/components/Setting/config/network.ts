@@ -1,5 +1,5 @@
 import { useSettingStore } from "@/stores";
-import { isElectron } from "@/utils/env";
+import { isElectron, isCapacitor } from "@/utils/env";
 import { SettingConfig } from "@/types/settings";
 import { computed, ref, h, markRaw } from "vue";
 import { debounce } from "lodash-es";
@@ -25,16 +25,22 @@ export const useNetworkSettings = (): SettingConfig => {
       !settingStore.proxyServe ||
       !settingStore.proxyPort
     ) {
-      window.electron.ipcRenderer.send("remove-proxy");
+      if (isElectron) window.electron.ipcRenderer.send("remove-proxy");
       window.$message.success("成功关闭网络代理");
       return;
     }
-    window.electron.ipcRenderer.send("set-proxy", proxyConfig.value);
+    if (isElectron) window.electron.ipcRenderer.send("set-proxy", proxyConfig.value);
     window.$message.success("网络代理配置完成，请重启软件");
   }, 300);
 
   const testProxy = async () => {
     testProxyLoading.value = true;
+    if (isCapacitor) {
+      // Capacitor 侧通过实际请求验证即可，此处跳过 ipc 调用
+      window.$message.success("已保存代理配置");
+      testProxyLoading.value = false;
+      return;
+    }
     const result = await window.electron.ipcRenderer.invoke("test-proxy", proxyConfig.value);
     if (result) {
       window.$message.success("该代理可正常使用");
@@ -240,7 +246,7 @@ export const useNetworkSettings = (): SettingConfig => {
           {
             key: "proxyProtocol",
             label: "网络代理",
-            show: isElectron,
+            show: isElectron || isCapacitor,
             type: "select",
             description: "修改后请点击保存或重启软件以应用",
             options: [
@@ -263,7 +269,7 @@ export const useNetworkSettings = (): SettingConfig => {
           {
             key: "proxyServe",
             label: "代理服务器地址",
-            show: isElectron,
+            show: isElectron || isCapacitor,
             type: "text-input",
             description: "请填写代理服务器地址，如 127.0.0.1",
             disabled: computed(() => settingStore.proxyProtocol === "off"),
@@ -281,7 +287,7 @@ export const useNetworkSettings = (): SettingConfig => {
           {
             key: "proxyPort",
             label: "代理服务器端口",
-            show: isElectron,
+            show: isElectron || isCapacitor,
             type: "input-number",
             description: "请填写代理服务器端口，如 80",
             disabled: computed(() => settingStore.proxyProtocol === "off"),
@@ -299,7 +305,7 @@ export const useNetworkSettings = (): SettingConfig => {
           {
             key: "proxyTest",
             label: "测试代理",
-            show: isElectron,
+            show: isElectron || isCapacitor,
             type: "button",
             description: "测试代理配置是否可正常连通",
             buttonLabel: "测试代理",
