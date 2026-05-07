@@ -3,7 +3,8 @@ import { usePlayerController } from "@/core/player/PlayerController";
 import { useDownloadManager } from "@/core/resource/DownloadManager";
 import { useDataStore, useSettingStore, useShortcutStore, useStatusStore } from "@/stores";
 import { TASKBAR_IPC_CHANNELS } from "@/types/shared";
-import { isElectron, isMac } from "@/utils/env";
+import { isElectron, isMac, isCapacitor } from "@/utils/env";
+import { StatusBar } from "@capacitor/status-bar";
 import { printVersion } from "@/utils/log";
 import { openUserAgreement } from "@/utils/modal";
 import { useEventListener } from "@vueuse/core";
@@ -101,6 +102,25 @@ export const useInit = () => {
           window.electron.ipcRenderer.send("win-show-main");
         }, FINAL_FOCUS_DELAY_MS);
       }
+    }
+    } else if (isCapacitor) {
+      // Capacitor 状态栏处理：竖屏显示，横屏隐藏
+      const updateStatusBar = async () => {
+        try {
+          const isLandscape = window.matchMedia("(orientation: landscape)").matches;
+          if (isLandscape) {
+            await StatusBar.hide();
+          } else {
+            await StatusBar.show();
+          }
+        } catch (e) {
+          console.warn("StatusBar error", e);
+        }
+      };
+      window.addEventListener("orientationchange", () => {
+        setTimeout(updateStatusBar, 100);
+      });
+      updateStatusBar();
     }
   });
 };

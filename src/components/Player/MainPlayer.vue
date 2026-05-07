@@ -437,8 +437,8 @@ const showCreatorTip = () => window.$message.info("暂不支持查看主播主�
   position: fixed;
   left: 0;
   bottom: -90px;
-  height: 80px;
-  padding: 0 15px;
+  height: calc(80px + env(safe-area-inset-bottom));
+  padding: 0 15px env(safe-area-inset-bottom) 15px;
   width: 100%;
   background-color: var(--surface-container-hex);
   display: grid;

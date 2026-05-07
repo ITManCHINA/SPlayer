@@ -308,8 +308,8 @@ onMounted(async () => {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  height: 70px;
-  padding: 0 1rem;
+  height: calc(70px + env(safe-area-inset-top));
+  padding: env(safe-area-inset-top) 1rem 0;
   background-color: transparent;
   -webkit-app-region: drag;
   .n-button {
