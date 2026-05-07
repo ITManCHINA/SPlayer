@@ -59,7 +59,11 @@
           </template>
         </n-button>
         <n-drawer v-model:show="showAside" :width="240" placement="left">
-          <n-drawer-content :body-content-style="{ padding: 0 }" :native-scrollbar="false">
+          <n-drawer-content
+            :body-content-style="{ padding: 0 }"
+            :native-scrollbar="false"
+            :header-style="{ paddingTop: 'calc(16px + env(safe-area-inset-top))' }"
+          >
             <template #header>
               <n-flex align="center" justify="center" class="aside-logo">
                 <Logo />
