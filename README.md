@@ -1,3 +1,43 @@
+> [!Caution]
+> 该分支仅用于 iOS 端移植可行性验证测试，请勿用于生产环境！
+
+# 调试
+
+```
+pnpm run build:ios
+```
+
+```
+npx cap open ios
+```
+在打开的 Xcode 界面选择实机或者虚拟机并构建即可
+> 可以在 Xcode 里选择 Apple ID 自签，这里不废话了。
+
+# 构建无签名 ipa
+
+运行完上述调试步骤后运行以下命令
+
+```
+xcodebuild -project App.xcodeproj -scheme App -configuration Release clean archive -archivePath build/unsigned.xcarchive CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO CODE_SIGNING_ALLOWED=NO
+```
+
+```
+# 1. 创建 Payload 文件夹
+
+mkdir -p build/Payload
+
+# 2. 拷贝生成的无签名 .app 到 Payload 目录
+
+cp -r build/unsigned.xcarchive/Products/Applications/App.app build/Payload/
+
+# 3. 压缩并改名
+
+cd build
+zip -qr SPlayer.ipa Payload
+```
+
+---
+
 <div align="center">
 <img alt="logo" height="100" width="100" src="public/icons/favicon.png" />
 <h2> SPlayer </h2>
