@@ -296,7 +296,8 @@ onBeforeUnmount(() => {
   .lrc-instant {
     position: absolute;
     top: 0;
-    height: 80px;
+    height: calc(80px + env(safe-area-inset-top));
+    padding-top: env(safe-area-inset-top);
     display: flex;
     flex-direction: column;
     justify-content: center;

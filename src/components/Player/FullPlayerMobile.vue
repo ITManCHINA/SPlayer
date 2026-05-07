@@ -259,12 +259,14 @@ const contentTransform = computed(() => {
   .top-bar {
     position: absolute;
     width: 100%;
-    height: 60px;
+    height: calc(60px + env(safe-area-inset-top));
+    padding-top: env(safe-area-inset-top);
     flex-shrink: 0;
     display: flex;
     align-items: center;
     justify-content: flex-end;
-    padding: 0 24px;
+    padding-left: 24px;
+    padding-right: 24px;
     z-index: 10;
     .btn {
       width: 40px;
@@ -304,7 +306,7 @@ const contentTransform = computed(() => {
       display: flex;
       flex-direction: column;
       align-items: center;
-      padding: 0 24px 40px 24px;
+      padding: 0 24px calc(40px + env(safe-area-inset-bottom)) 24px;
       overflow-y: auto;
       .cover-section {
         flex: 1;
@@ -312,7 +314,7 @@ const contentTransform = computed(() => {
         display: flex;
         align-items: center;
         justify-content: center;
-        margin-top: 60px;
+        margin-top: calc(60px + env(safe-area-inset-top));
         margin-bottom: 20px;
         :deep(.player-cover) {
           width: min(100%, 45vh);
@@ -467,7 +469,7 @@ const contentTransform = computed(() => {
     }
     .lyric-page {
       padding: 0 24px;
-      padding-top: 60px;
+      padding-top: calc(60px + env(safe-area-inset-top));
       display: flex;
       flex-direction: column;
       .lyric-header {
@@ -538,7 +540,7 @@ const contentTransform = computed(() => {
   }
   .pagination {
     position: absolute;
-    bottom: 24px;
+    bottom: calc(24px + env(safe-area-inset-bottom));
     left: 0;
     width: 100%;
     display: flex;
