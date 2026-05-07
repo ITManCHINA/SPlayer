@@ -140,6 +140,8 @@ export interface SettingState {
   proxyServe: string;
   /** 代理端口 */
   proxyPort: number;
+  /** 自定义 API 地址 */
+  customApiUrl: string;
   /** 歌曲音质 */
   songLevel:
     | "standard"
@@ -641,6 +643,7 @@ export const useSettingStore = defineStore("setting", {
     proxyProtocol: "off",
     proxyServe: "127.0.0.1",
     proxyPort: 80,
+    customApiUrl: "",
     useRealIP: false,
     realIP: "",
     showPlayMeta: true,

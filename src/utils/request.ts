@@ -6,9 +6,7 @@ import { isLogin } from "./auth";
 import axiosRetry from "axios-retry";
 
 // 全局地址
-const baseURL: string = isCapacitor
-  ? "http://127.0.0.1:25884/api/netease"
-  : String(isDev ? "/api/netease" : import.meta.env["VITE_API_URL"]);
+const baseURL: string = String(isDev ? "/api/netease" : import.meta.env["VITE_API_URL"]);
 
 // 基础配置
 const server: AxiosInstance = axios.create({
@@ -31,6 +29,12 @@ server.interceptors.request.use(
     // pinia
     const settingStore = useSettingStore();
     if (!request.params) request.params = {};
+
+    // 动态应用自定义云端 API (移动端推荐使用 Vercel)
+    if (isCapacitor && settingStore.customApiUrl) {
+      request.baseURL = settingStore.customApiUrl.replace(/\/$/, "");
+    }
+
     // Cookie
     if (!request.params.noCookie && (isLogin() || getCookie("MUSIC_U") !== null)) {
       const cookie = `MUSIC_U=${getCookie("MUSIC_U")};os=pc;`;

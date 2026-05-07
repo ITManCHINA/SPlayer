@@ -11,6 +11,7 @@ import StreamingServerList from "../components/StreamingServerList.vue";
 export const useNetworkSettings = (): SettingConfig => {
   const settingStore = useSettingStore();
   const testProxyLoading = ref<boolean>(false);
+  const testApiLoading = ref<boolean>(false);
 
   // --- Network Proxy Logic (from other.ts) ---
   const proxyConfig = computed(() => ({
@@ -48,6 +49,31 @@ export const useNetworkSettings = (): SettingConfig => {
       window.$message.error("代理测试失败，请重试");
     }
     testProxyLoading.value = false;
+  };
+
+  const testCustomApi = async () => {
+    if (!settingStore.customApiUrl) {
+      window.$message.error("请先填写 API 地址");
+      return;
+    }
+    testApiLoading.value = true;
+    try {
+      // 触发国行 iOS 联网弹窗并测试连通性
+      const baseUrl = settingStore.customApiUrl.replace(/\/$/, "");
+      const res = await fetch(`${baseUrl}/search?keywords=test`);
+      if (res.ok) {
+        window.$message.success("API 测试成功，网络连通正常");
+      } else {
+        window.$message.error(`API 测试异常 (状态码: ${res.status})`);
+      }
+    } catch (e: any) {
+      console.error("API Test Failed", e);
+      window.$message.error(
+        "连接失败！如果是首次安装，请在弹窗中允许 App 使用无线局域网与蜂窝网络。",
+      );
+    } finally {
+      testApiLoading.value = false;
+    }
   };
 
   // --- Discord RPC Logic (from third.ts) ---
@@ -237,6 +263,38 @@ export const useNetworkSettings = (): SettingConfig => {
             description: "在此添加和管理您的流媒体服务器",
             noWrapper: true,
             component: markRaw(StreamingServerList),
+          },
+        ],
+      },
+      {
+        title: "云端 API 配置 (推荐移动端使用)",
+        show: isCapacitor,
+        items: [
+          {
+            key: "customApiUrl",
+            label: "自定义 API 地址",
+            type: "text-input",
+            description:
+              "填入你部署在 Vercel 上的 NeteaseCloudMusicApi 域名 (如 https://xxx.vercel.app)",
+            componentProps: {
+              placeholder: "https://your-api.vercel.app",
+            },
+            value: computed({
+              get: () => settingStore.customApiUrl,
+              set: (v) => (settingStore.customApiUrl = v),
+            }),
+          },
+          {
+            key: "testCustomApi",
+            label: "测试并唤起网络权限",
+            type: "button",
+            description: "首次在 iOS 运行请点击此按钮，触发系统的“允许联网”弹窗",
+            buttonLabel: "测试连接",
+            action: testCustomApi,
+            componentProps: computed(() => ({
+              loading: testApiLoading.value,
+              type: "primary",
+            })),
           },
         ],
       },

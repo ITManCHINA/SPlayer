@@ -312,7 +312,6 @@ class MediaSessionManager {
    * 更新播放状态
    */
   public updatePlaybackStatus(isPlaying: boolean) {
-
     // 发送到原生插件
     if (this.shouldUseNativeMedia()) {
       sendMediaPlayState(isPlaying ? "Playing" : "Paused");
