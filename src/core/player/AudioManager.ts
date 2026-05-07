@@ -48,11 +48,11 @@ class AudioManager extends TypedEventTarget<AudioEventMap> implements IPlaybackE
       mpvPlayer.init();
       this.engine = mpvPlayer;
       this.engineType = "mpv";
-    } else if (audioEngine === "ffmpeg" && checkIsolationSupport()) {
+    } else if (isElectron && audioEngine === "ffmpeg" && checkIsolationSupport()) {
       this.engine = new FFmpegAudioPlayer();
       this.engineType = "ffmpeg";
     } else {
-      if (audioEngine === "ffmpeg" && !checkIsolationSupport()) {
+      if (isElectron && audioEngine === "ffmpeg" && !checkIsolationSupport()) {
         console.warn("[AudioManager] 环境未隔离，从 FFmpeg 回退到 Web Audio");
       }
 

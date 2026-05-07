@@ -10,8 +10,11 @@ export const isWin = userAgent.includes("Windows");
 export const isMac = userAgent.includes("Macintosh");
 /** 是否为 Linux 系统 */
 export const isLinux = userAgent.includes("Linux");
+/** 是否为 Capacitor 环境 */
+export const isCapacitor = typeof window !== "undefined" && !!(window as any).Capacitor;
 /** 是否为 Electron 环境 */
-export const isElectron = userAgent.includes("Electron") || typeof window?.electron !== "undefined";
+export const isElectron =
+  (userAgent.includes("Electron") || typeof window?.electron !== "undefined") && !isCapacitor;
 
 /** 是否为移动端 */
 export const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(

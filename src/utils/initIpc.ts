@@ -85,7 +85,7 @@ const initIpc = () => {
     );
 
     // 给任务栏歌词初始数据
-window.electron.ipcRenderer.on(TASKBAR_IPC_CHANNELS.REQUEST_DATA, async () => {
+    window.electron.ipcRenderer.on(TASKBAR_IPC_CHANNELS.REQUEST_DATA, async () => {
       const musicStore = useMusicStore();
       const statusStore = useStatusStore();
 

@@ -36,11 +36,17 @@
     "build:linux": "pnpm build && electron-builder --linux --config electron-builder.config.ts",
     "docs:dev": "vitepress dev docs",
     "docs:build": "vitepress build docs",
-    "docs:preview": "vitepress preview docs"
+    "docs:preview": "vitepress preview docs",
+    "build:ios": "pnpm build:web && cap sync ios",
+    "cap:sync": "cap sync ios"
   },
   "dependencies": {
     "@applemusic-like-lyrics/core": "^0.3.2",
     "@applemusic-like-lyrics/lyric": "^0.4.1",
+    "@capacitor/core": "^8.3.1",
+    "@capacitor/filesystem": "^8.1.2",
+    "@capacitor/ios": "^8.3.1",
+    "@capacitor/preferences": "^8.0.1",
     "@electron-toolkit/preload": "^3.0.2",
     "@electron-toolkit/utils": "^4.0.0",
     "@imsyy/color-utils": "^1.0.2",
@@ -58,6 +64,7 @@
     "axios": "^1.13.5",
     "axios-retry": "^4.5.0",
     "better-sqlite3": "^12.6.2",
+    "capacitor-music-controls-plugin": "^6.1.0",
     "change-case": "^5.4.4",
     "dayjs": "^1.11.19",
     "electron-store": "^11.0.2",
@@ -83,6 +90,7 @@
     "ws": "^8.19.0"
   },
   "devDependencies": {
+    "@capacitor/cli": "^8.3.1",
     "@electron-toolkit/preload": "^3.0.1",
     "@electron-toolkit/tsconfig": "^2.0.0",
     "@electron-toolkit/utils": "^4",
@@ -102,6 +110,7 @@
     "@typescript-eslint/parser": "^8.55.0",
     "@vitejs/plugin-vue": "^6.0.4",
     "ajv": "^8.17.1",
+    "astral-regex": "^2.0.0",
     "crypto-js": "^4.2.0",
     "electron": "39.4.0",
     "electron-builder": "^26.7.0",

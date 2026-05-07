@@ -249,7 +249,10 @@ class TaskbarLyricWindow {
       const scaleFactor = primaryDisplay.scaleFactor;
       const store = useStore();
       const GAP = store.get("taskbar.margin", 10) * scaleFactor;
-      const positionSetting = store.get("taskbar.position", "automatic") as TaskbarConfig["position"];
+      const positionSetting = store.get(
+        "taskbar.position",
+        "automatic",
+      ) as TaskbarConfig["position"];
       // autoMaxWidth 开启时无上限（撑满可用空间），关闭时按设置的像素值（逻辑像素）限制
       const autoMaxWidth = store.get("taskbar.autoMaxWidth", true);
       const maxWidthLogical = store.get("taskbar.maxWidth", 400);
