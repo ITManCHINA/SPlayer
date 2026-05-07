@@ -17,12 +17,6 @@ import "@/style/main.scss";
 import "@/style/animate.scss";
 import "github-markdown-css/github-markdown.css";
 import { isCapacitor, isElectron } from "./utils/env";
-import { NodeJS } from "@choreruiz/capacitor-node-js";
-
-// 启动内嵌的 Node.js 环境
-if (isCapacitor) {
-  NodeJS.start();
-}
 
 // 挂载
 const app = createApp(App);
