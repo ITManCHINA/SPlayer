@@ -37,7 +37,7 @@
     "docs:dev": "vitepress dev docs",
     "docs:build": "vitepress build docs",
     "docs:preview": "vitepress preview docs",
-    "build:ios": "pnpm build:web && cap sync ios",
+    "build:ios": "pnpm build:web && node -e \"fs.cpSync('nodejs', 'out/renderer/nodejs', {recursive: true, force: true})\" && cap sync ios",
     "cap:sync": "cap sync ios"
   },
   "dependencies": {
