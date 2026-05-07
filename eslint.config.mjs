@@ -23,6 +23,7 @@ export default [
       "**/out",
       "**/.gitignore",
       "**/docs",
+      "**/ios",
       "**/auto-imports.d.ts",
       "**/components.d.ts",
       "native/**/index.d.ts",

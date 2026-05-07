@@ -102,7 +102,6 @@ export const useInit = () => {
           window.electron.ipcRenderer.send("win-show-main");
         }, FINAL_FOCUS_DELAY_MS);
       }
-    }
     } else if (isCapacitor) {
       // Capacitor 状态栏处理：竖屏显示，横屏隐藏
       const updateStatusBar = async () => {
