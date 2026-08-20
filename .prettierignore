@@ -1,5 +1,6 @@
 out
 dist
+ios
 pnpm-lock.yaml
 LICENSE.md
 auto-imports.d.ts

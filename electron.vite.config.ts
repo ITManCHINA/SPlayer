@@ -39,6 +39,14 @@ const commonResolve = {
   },
 };
 
+/**
+ * 渲染进程构建目标覆盖（用于 iOS / Web 产物，未设置时沿用 electron-vite 默认值）
+ *
+ * 需使用 `es?` 或 `chrome?` 格式，否则 electron-vite 会输出告警
+ * （`safari15` 虽被 esbuild 接受，但会触发 "not chrome? or es?" 告警）
+ */
+const buildTarget = process.env.SPLAYER_BUILD_TARGET;
+
 export default defineConfig(({ mode }) => {
   // 读取环境变量
   const getEnv = (name: keyof MainEnv): string => {
@@ -129,6 +137,9 @@ export default defineConfig(({ mode }) => {
         port: webPort,
       },
       build: {
+        // 默认由 electron-vite 按 Electron 版本推导（Electron 43 会 fallback 到 chrome142）
+        // 构建 iOS / Web 产物时用 SPLAYER_BUILD_TARGET 覆盖，避免语法不降级导致 WKWebView 解析失败
+        ...(buildTarget ? { target: buildTarget } : {}),
         minify: "terser",
         publicDir: resolve(__dirname, "public"),
         rollupOptions: {

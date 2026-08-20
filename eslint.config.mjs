@@ -21,6 +21,7 @@ export default [
       "**/node_modules",
       "**/dist",
       "**/out",
+      "**/ios",
       "**/.gitignore",
       "**/docs",
       "**/auto-imports.d.ts",

@@ -1,0 +1,96 @@
+name: Build iOS
+
+on:
+  workflow_dispatch:
+
+env:
+  NODE_VERSION: 26.x
+  # 渲染进程构建目标，需与 IPHONEOS_DEPLOYMENT_TARGET (15.0) 兼容
+  # 用 es? 格式以避免 electron-vite 的 "not chrome? or es?" 告警
+  SPLAYER_BUILD_TARGET: es2020
+  # 跳过 Rust 原生模块编译：renderer 对 @emi 全是类型引用，
+  # 而 @opencc 的 wasm 产物已预构建提交在 native/ferrous-opencc-wasm/pkg
+  SKIP_NATIVE_BUILD: true
+
+jobs:
+  build:
+    name: Build unsigned IPA
+    runs-on: macos-latest
+
+    steps:
+      - name: Check out git repository
+        uses: actions/checkout@v6
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v5
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Copy .env file
+        run: |
+          if [ ! -f .env ]; then
+            cp .env.example .env
+          else
+            echo ".env file already exists. Skipping the copy step."
+          fi
+
+      # --ignore-scripts 跳过 postinstall 的 electron-builder install-app-deps
+      - name: Install dependencies
+        run: pnpm install --ignore-scripts
+
+      # 构建渲染进程产物到 out/renderer（capacitor.config.ts 的 webDir）
+      - name: Build web assets
+        run: pnpm exec electron-vite build
+
+      # 同步产物到 iOS 原生工程（填充 ios/App/App/public）
+      - name: Sync Capacitor iOS project
+        run: pnpm exec cap sync ios
+
+      # 使用 SPM 预解析 Swift Package 依赖
+      - name: Resolve Swift packages
+        run: |
+          xcodebuild -resolvePackageDependencies \
+            -project ios/App/App.xcodeproj \
+            -scheme App
+
+      - name: Build unsigned .app
+        run: |
+          xcodebuild -project ios/App/App.xcodeproj \
+            -scheme App \
+            -configuration Release \
+            -destination 'generic/platform=iOS' \
+            -derivedDataPath build \
+            CODE_SIGN_IDENTITY="" \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGN_ENTITLEMENTS="" \
+            build
+
+      - name: Package into .ipa
+        id: package
+        run: |
+          APP_PATH="build/Build/Products/Release-iphoneos/App.app"
+          if [ ! -d "$APP_PATH" ]; then
+            echo "::error::找不到构建产物 $APP_PATH"
+            exit 1
+          fi
+
+          VERSION=$(node -p "require('./package.json').version")
+          IPA_NAME="SPlayer-${VERSION}-${GITHUB_SHA::7}-unsigned.ipa"
+
+          mkdir -p Payload
+          cp -R "$APP_PATH" Payload/
+          zip -qry "$IPA_NAME" Payload
+
+          echo "ipa_name=$IPA_NAME" >> "$GITHUB_OUTPUT"
+          echo "✅ 已生成 $IPA_NAME ($(du -h "$IPA_NAME" | cut -f1))"
+
+      - name: Upload Artifacts - iOS unsigned IPA
+        uses: actions/upload-artifact@v7
+        with:
+          name: SPlayer-iOS-unsigned-ipa
+          path: ${{ steps.package.outputs.ipa_name }}
+          if-no-files-found: error
