@@ -63,6 +63,15 @@ const commonResolve = {
  */
 const buildTarget = process.env.SPLAYER_BUILD_TARGET;
 
+/**
+ * 是否为 iOS (Capacitor) 构建
+ *
+ * 用作条件编译开关：注入为字面量 `false` 后，`if (__IS_IOS_BUILD__) { ... }` 整块
+ * 会被 Rollup 的 DCE 删除，相关模块也随之从依赖图中脱落 ——
+ * 桌面端与 Web 端的产物里不会残留任何 iOS 专属代码
+ */
+const isIosBuild = ["true", "1"].includes(String(process.env.SPLAYER_IOS_BUILD));
+
 export default defineConfig(({ mode }) => {
   // 读取环境变量
   const getEnv = (name: keyof MainEnv): string => {
@@ -107,6 +116,7 @@ export default defineConfig(({ mode }) => {
         __COMMIT_HASH__: JSON.stringify(getGitCommit()),
         __COMMIT_DATE__: JSON.stringify(getGitDate()),
         __CAPACITOR_VERSION__: JSON.stringify(getCapacitorVersion()),
+        __IS_IOS_BUILD__: JSON.stringify(isIosBuild),
       },
       plugins: [
         vue(),

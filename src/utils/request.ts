@@ -3,6 +3,7 @@ import { isDev } from "./env";
 import { useSettingStore } from "@/stores";
 import { getCookie } from "./cookie";
 import { isLogin } from "./auth";
+import { createNativeAdapter } from "./nativeRequest";
 import axiosRetry from "axios-retry";
 
 // 全局地址
@@ -16,6 +17,13 @@ const server: AxiosInstance = axios.create({
   // 超时时间
   timeout: 15000,
 });
+
+// iOS：把传输层换成原生插件
+// baseURL 是相对路径，在 capacitor://localhost 源下无服务可命中，必须改道原生
+// 此分支在其它端被条件编译剔除，adapter 模块也不会进入产物
+if (__IS_IOS_BUILD__) {
+  server.defaults.adapter = createNativeAdapter();
+}
 
 // 请求重试
 axiosRetry(server, {
