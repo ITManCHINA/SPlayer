@@ -2,6 +2,7 @@
 
 declare const __COMMIT_HASH__: string;
 declare const __COMMIT_DATE__: string;
+declare const __CAPACITOR_VERSION__: string;
 
 declare module "*.vue" {
   import type { DefineComponent } from "vue";

@@ -1,6 +1,7 @@
 import vue from "@vitejs/plugin-vue";
 import { execSync } from "child_process";
 import { defineConfig, loadEnv } from "electron-vite";
+import { readFileSync } from "fs";
 import { resolve } from "path";
 import AutoImport from "unplugin-auto-import/vite";
 import { NaiveUiResolver } from "unplugin-vue-components/resolvers";
@@ -23,6 +24,21 @@ const getGitCommit = (): string => {
 const getGitDate = (): string => {
   try {
     return execSync("git log -1 --format=%cI").toString().trim() || "unknown";
+  } catch {
+    return "unknown";
+  }
+};
+
+/**
+ * 获取实际安装的 Capacitor 版本
+ *
+ * 读取 node_modules 中已安装的版本，而非 package.json 里声明的 `^x.y.z` 范围，
+ * 因此升级依赖后无需改动此处
+ */
+const getCapacitorVersion = (): string => {
+  try {
+    const pkgPath = resolve(__dirname, "node_modules/@capacitor/core/package.json");
+    return JSON.parse(readFileSync(pkgPath, "utf-8")).version || "unknown";
   } catch {
     return "unknown";
   }
@@ -90,6 +106,7 @@ export default defineConfig(({ mode }) => {
       define: {
         __COMMIT_HASH__: JSON.stringify(getGitCommit()),
         __COMMIT_DATE__: JSON.stringify(getGitDate()),
+        __CAPACITOR_VERSION__: JSON.stringify(getCapacitorVersion()),
       },
       plugins: [
         vue(),

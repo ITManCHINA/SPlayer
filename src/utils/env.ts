@@ -1,3 +1,5 @@
+import { Capacitor } from "@capacitor/core";
+
 /** 是否为开发环境 */
 export const isDev = import.meta.env.MODE === "development" || import.meta.env.DEV;
 
@@ -12,6 +14,48 @@ export const isMac = userAgent.includes("Macintosh");
 export const isLinux = userAgent.includes("Linux");
 /** 是否为 Electron 环境 */
 export const isElectron = userAgent.includes("Electron") || typeof window?.electron !== "undefined";
+
+/** 是否运行于 Capacitor 原生容器（iOS / Android），Electron 与浏览器下均为 false */
+export const isCapacitor = Capacitor.isNativePlatform();
+
+/**
+ * Capacitor 版本
+ *
+ * `@capacitor/core` 未在运行时暴露自身版本，因此由构建期从 node_modules
+ * 中已安装的包解析后注入（见 electron.vite.config.ts 的 getCapacitorVersion）
+ */
+export const capacitorVersion = __CAPACITOR_VERSION__;
+
+/** 原生环境信息 */
+export type NativeEnvInfo = {
+  /** 系统版本，如 "17.0" */
+  osVersion: string;
+  /** WebView 版本，iOS 下即真实 WebKit 版本 */
+  webViewVersion: string;
+  /** 设备型号，如 "iPhone13,4" */
+  model: string;
+  /** 操作系统名，如 "ios" */
+  operatingSystem: string;
+};
+
+/**
+ * 读取原生环境信息，非 Capacitor 容器或读取失败时返回 undefined
+ *
+ * 走原生 Device 插件而非解析 UA：iOS 的 UA 中 `AppleWebKit/605.1.15` 这个 token
+ * 已被 Apple 冻结多年，各 iOS 版本都返回同一个值，解析它等同于硬编码。
+ *
+ * 采用动态 import 以避免 `@capacitor/device` 被打进桌面端产物
+ */
+export const getNativeEnvInfo = async (): Promise<NativeEnvInfo | undefined> => {
+  if (!isCapacitor) return undefined;
+  try {
+    const { Device } = await import("@capacitor/device");
+    const { osVersion, webViewVersion, model, operatingSystem } = await Device.getInfo();
+    return { osVersion, webViewVersion, model, operatingSystem };
+  } catch {
+    return undefined;
+  }
+};
 
 /** 是否为移动端 */
 export const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(

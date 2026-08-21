@@ -1,5 +1,5 @@
 {
-  "originHash" : "0032618b17b8d5a7495763482c0d2ecb1f70df810cc9dfcfd5cb448234f04e48",
+  "originHash" : "350d9e2ef546ee9198f7dcb2a81c02bab13bfff9825d7e34bb11391b3ba7c743",
   "pins" : [
     {
       "identity" : "capacitor-swift-pm",
@@ -8,6 +8,15 @@
       "state" : {
         "revision" : "4f71d0b979f2f957326f04353eca7604ee937e1e",
         "version" : "8.5.0"
+      }
+    },
+    {
+      "identity" : "neteasecloudmusicapi-swift",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/Lincb522/NeteaseCloudMusicAPI-Swift.git",
+      "state" : {
+        "revision" : "53569d8554dc08e97f3b598dbbc44a41e178cf16",
+        "version" : "1.4.2"
       }
     }
   ],

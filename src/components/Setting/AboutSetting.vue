@@ -183,7 +183,13 @@
 <script setup lang="ts">
 import { openLink, copyData } from "@/utils/helper";
 import { useStatusStore } from "@/stores";
-import { isElectron } from "@/utils/env";
+import {
+  capacitorVersion,
+  getNativeEnvInfo,
+  isCapacitor,
+  isElectron,
+  type NativeEnvInfo,
+} from "@/utils/env";
 import packageJson from "@/../package.json";
 
 const statusStore = useStatusStore();
@@ -315,6 +321,11 @@ const commitTimeAgo = useTimeAgo(new Date(__COMMIT_DATE__));
 const versions = isElectron ? window.electron.process.versions : {};
 // 操作系统信息
 const osInfo = isElectron ? window.api.system.osInfo : undefined;
+// 原生环境信息（Capacitor 下由 Device 插件异步提供）
+const nativeEnv = ref<NativeEnvInfo>();
+onMounted(async () => {
+  nativeEnv.value = await getNativeEnvInfo();
+});
 
 // 环境信息列表
 const envItems = computed<EnvItem[]>(() => [
@@ -327,11 +338,25 @@ const envItems = computed<EnvItem[]>(() => [
     label: "日期",
     value: `${__COMMIT_DATE__} (${commitTimeAgo.value})`,
   },
-  { label: "Electron", value: versions.electron },
-  { label: "Chromium", value: versions.chrome },
-  { label: "Node.js", value: versions.node },
-  { label: "V8", value: versions.v8 },
-  { label: "OS", value: osInfo ? `${osInfo.type} ${osInfo.arch} ${osInfo.release}` : undefined },
+  // 运行容器信息：Capacitor 下无 Node.js / V8，故按平台切换
+  ...(isCapacitor
+    ? [
+        { label: "Capacitor", value: capacitorVersion },
+        { label: "WebKit", value: nativeEnv.value?.webViewVersion },
+      ]
+    : [
+        { label: "Electron", value: versions.electron },
+        { label: "Chromium", value: versions.chrome },
+        { label: "Node.js", value: versions.node },
+        { label: "V8", value: versions.v8 },
+      ]),
+  {
+    label: "OS",
+    value: osInfo
+      ? `${osInfo.type} ${osInfo.arch} ${osInfo.release}`
+      : nativeEnv.value &&
+        `${nativeEnv.value.operatingSystem} ${nativeEnv.value.osVersion} (${nativeEnv.value.model})`,
+  },
 ]);
 
 // 复制环境信息

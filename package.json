@@ -56,6 +56,7 @@
     "@applemusic-like-lyrics/lyric": "^1.0.2",
     "@capacitor/cli": "^8.5.0",
     "@capacitor/core": "^8.5.0",
+    "@capacitor/device": "^8.0.3",
     "@capacitor/ios": "^8.5.0",
     "@electron-toolkit/preload": "^3.0.2",
     "@electron-toolkit/tsconfig": "^2.0.0",
