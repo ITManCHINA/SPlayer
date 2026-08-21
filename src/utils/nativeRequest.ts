@@ -1,5 +1,6 @@
 import { registerPlugin } from "@capacitor/core";
 import type { AxiosAdapter, AxiosResponse, InternalAxiosRequestConfig } from "axios";
+import { getCookie } from "./cookie";
 
 /**
  * iOS 原生网易云 API 桥接
@@ -59,13 +60,46 @@ const networkError = (detail: string, route: string): Error => {
   return error;
 };
 
+/**
+ * 补上 `__csrf`
+ *
+ * `request.ts:33-36` 的请求拦截器只把 `MUSIC_U` 拼进 `params.cookie`。
+ * 桌面端不受影响 —— 同源的 HTTP Cookie 头会把 `__csrf` 一起带上，
+ * 且内嵌 Fastify 的 `cookie: req.cookies` 还会覆盖 query 参数。
+ *
+ * 但 `capacitor://localhost` 源下 WebKit 不存储 cookie（`document.cookie` 恒为空），
+ * 根本没有 Cookie 头，只剩 query 这一条通道。网易云大量鉴权接口需要 `csrf_token`，
+ * 缺了它在 App 重启后（SDK 的 cookie jar 是空的新进程）就会开始失败。
+ */
+const withCsrf = (cookie: string | undefined): string | undefined => {
+  const csrf = getCookie("__csrf");
+  if (!csrf) return cookie;
+  if (cookie?.includes("__csrf=")) return cookie;
+  const prefix = cookie ? (cookie.endsWith(";") ? cookie : `${cookie};`) : "";
+  return `${prefix}__csrf=${csrf};`;
+};
+
 /** 合并 params 与 data，并剥离不该传给原生库的键 */
 const collectParams = (config: InternalAxiosRequestConfig): Record<string, unknown> => {
   const merged: Record<string, unknown> = { ...(config.params ?? {}) };
+  const data = config.data;
 
-  // POST 形态（song/detail、playlist/tracks 等 4 处）的载荷在 data 里
-  if (config.data && typeof config.data === "object" && !(config.data instanceof FormData)) {
-    Object.assign(merged, config.data);
+  // POST 形态（/song/detail、/playlist/tracks、/song/order/update、/cloud）的载荷在 data 里。
+  //
+  // 注意：axios 的 transformRequest 在 adapter **之前**执行，普通对象到这里
+  // 已经被 JSON.stringify 成字符串了，所以必须先解析。
+  // 早期只判断 `typeof data === "object"` 导致 data 永远被忽略 ——
+  // 表现为歌单/艺人页/我喜欢的音乐「有容器信息但列表为空」，
+  // 因为这几处最终都要靠 /song/detail 把 ID 列表补成歌曲对象
+  if (typeof data === "string") {
+    try {
+      const parsed = JSON.parse(data);
+      if (parsed && typeof parsed === "object") Object.assign(merged, parsed);
+    } catch {
+      // 非 JSON 字符串（如已序列化的表单），原生库用不到，忽略
+    }
+  } else if (data && typeof data === "object" && !(data instanceof FormData)) {
+    Object.assign(merged, data);
   }
 
   for (const key of [...FRONTEND_ONLY_PARAMS, ...SERVER_ONLY_PARAMS]) {
@@ -108,8 +142,9 @@ export const createNativeAdapter = (): AxiosAdapter => {
 
     const params = collectParams(config);
     // 登录态：请求拦截器已把 MUSIC_U 拼成 `MUSIC_U=...;os=pc;` 放进 params.cookie
-    const cookie = typeof params.cookie === "string" ? params.cookie : undefined;
+    const rawCookie = typeof params.cookie === "string" ? params.cookie : undefined;
     delete params.cookie;
+    const cookie = withCsrf(rawCookie);
 
     // 原生调用无法真正中断，但要让 Promise 及时 settle，
     // 否则心动模式来回切换时会堆积悬挂的请求。

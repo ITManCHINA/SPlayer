@@ -42,17 +42,72 @@ public class NCMNativePlugin: CAPPlugin, CAPBridgedPlugin {
             guard let self else { return }
             do {
                 let response = try await self.dispatch(route: route, params: params)
+                let body = self.shapeBody(route: route, response: response, params: params)
+                // keys 用于判断响应结构是否符合前端预期；cookies 数量用于排查登录态问题
+                CAPLog.print(
+                    "[NCMNative] ✅ \(route) status=\(response.status) "
+                        + "cookies=\(response.cookies.count) keys=\(body.keys.sorted())"
+                )
                 call.resolve([
                     "status": response.status,
-                    "body": response.body,
+                    "body": body,
                 ])
             } catch let error as RouteError {
+                CAPLog.print("[NCMNative] ❌ \(route) 未接入")
                 call.reject(error.description, "ROUTE_UNSUPPORTED")
             } catch let error as ParamError {
+                CAPLog.print("[NCMNative] ❌ \(route) 参数错误：\(error.description)")
                 call.reject(error.description, "PARAM_INVALID")
             } catch {
+                CAPLog.print("[NCMNative] ❌ \(route) 请求失败：\(error.localizedDescription)")
                 call.reject(error.localizedDescription, "NATIVE_REQUEST_FAILED")
             }
+        }
+    }
+
+    // MARK: - 响应结构兼容
+
+    /// 把 SDK 返回的原始网易云 body 调整成 Node 后端的形状
+    ///
+    /// 渲染进程是照着 Node 版 `NeteaseCloudMusicApi` 的响应写的，而其中 11 个模块
+    /// **不是直接透传** —— 它们会把原始响应重新包装。SDK 返回的是原始 body，
+    /// 因此这些路由必须在此补齐包装，否则前端取不到字段。
+    ///
+    /// 判定这 11 个时踩过一次坑：最初只匹配 `return { ... body: ... }`，
+    /// 漏掉了 `result = { ... }` 后再 `return result` 的写法（如 login_status.js），
+    /// 导致启动时的登录校验一直失败。正确的判定是「构造了含 `body: {` 的对象字面量」。
+    private func shapeBody(route: String, response: APIResponse, params p: JSObject) -> [String: Any] {
+        switch route {
+        // 整个 body 被包进 data
+        case "/login/qr/key", "/song/url":
+            return ["code": 200, "data": response.body]
+
+        // login_status.js：code == 200 时包成 { data: { ...body } }
+        // 前端据此访问 loginState.data.profile（User.vue:172）；
+        // 缺这层包装会走进「登录已过期」分支，把 userLoginStatus 置为 false
+        case "/login/status":
+            let code = response.body["code"] as? Int
+            guard code == 200 else { return response.body }
+            return ["data": response.body]
+
+        // 登录类接口：Node 侧把响应头的 Set-Cookie 用 ';' 连接后塞进 body 的 cookie 字段
+        // （login_qr_check / login_cellphone / login_refresh / login），
+        // 而 Fastify 只 `reply.send(result.body)`，所以前端是从 body.cookie 取凭据的
+        case "/login/qr/check", "/login/cellphone", "/login/refresh", "/login":
+            var body = response.body
+            body["cookie"] = response.cookies.joined(separator: ";")
+            return body
+
+        case "/song/url/v1":
+            // Node 侧把结果重整为 data 数组；SDK 已返回 { code, data: [...] } 形状时直接用
+            if response.body["data"] != nil { return response.body }
+            return ["code": 200, "data": response.body]
+
+        case "/scrobble":
+            return ["code": 200, "data": "success", "details": response.body]
+
+        default:
+            return response.body
         }
     }
 
@@ -110,7 +165,7 @@ public class NCMNativePlugin: CAPPlugin, CAPBridgedPlugin {
         case "/album/sub":
             return try await client.albumSub(
                 id: int(p, "id") ?? 0,
-                action: try requireEnum(p, "action", SubAction.self)
+                action: try requireEnum(p, "t", SubAction.self)
             )
 
         case "/album/sublist":
@@ -432,7 +487,7 @@ public class NCMNativePlugin: CAPPlugin, CAPBridgedPlugin {
         case "/playlist/track/all":
             return try await client.playlistTrackAll(
                 id: int(p, "id") ?? 0,
-                limit: int(p, "limit") ?? 10,
+                limit: int(p, "limit") ?? 1000,
                 offset: int(p, "offset") ?? 0
             )
 
@@ -549,13 +604,13 @@ public class NCMNativePlugin: CAPPlugin, CAPBridgedPlugin {
 
         case "/song/url":
             return try await client.songUrl(
-                ids: intList(p, "ids"),
+                ids: intList(p, "ids", "id"),
                 br: int(p, "br") ?? 999000
             )
 
         case "/song/url/v1":
             return try await client.songUrlV1(
-                ids: intList(p, "ids"),
+                ids: intList(p, "ids", "id"),
                 level: SoundQualityType(rawValue: string(p, "level") ?? "") ?? .exhigh
             )
 
@@ -593,7 +648,7 @@ public class NCMNativePlugin: CAPPlugin, CAPBridgedPlugin {
 
         case "/user/cloud/del":
             return try await client.userCloudDel(
-                ids: intList(p, "ids")
+                ids: intList(p, "ids", "id")
             )
 
         case "/user/detail":
@@ -643,6 +698,52 @@ public class NCMNativePlugin: CAPPlugin, CAPBridgedPlugin {
 
         case "/recommend/resource":
             return try await client.recommendResource()
+        // ↓ 以下路由在 src/api 中是先赋值给变量再用（如 rec.ts:34、playlist.ts:72、playlist.ts:164），
+        //   最初的字面量扫描没抓到，由真机测试暴露后补入
+        case "/lyric":
+            return try await client.lyric(id: int(p, "id") ?? 0)
+
+        case "/personalized":
+            return try await client.personalized(limit: int(p, "limit") ?? 30)
+
+        case "/personalized/newsong":
+            return try await client.personalizedNewsong(limit: int(p, "limit") ?? 10)
+
+        case "/personalized/mv":
+            return try await client.personalizedMv()
+
+        case "/personalized/djprogram":
+            return try await client.personalizedDjprogram()
+
+        case "/personalized/privatecontent":
+            return try await client.personalizedPrivatecontent()
+
+        case "/top/playlist":
+            return try await client.topPlaylist(
+                cat: string(p, "cat") ?? "全部",
+                limit: int(p, "limit") ?? 50,
+                offset: int(p, "offset") ?? 0
+            )
+
+        case "/top/playlist/highquality":
+            return try await client.topPlaylistHighquality(
+                cat: string(p, "cat") ?? "全部",
+                limit: int(p, "limit") ?? 50,
+                offset: int(p, "offset") ?? 0,
+                lasttime: int(p, "before", "lasttime") ?? 0
+            )
+
+        // 注意大小写：SDK 同时存在 toplist()（排行榜列表）与 topList(id:)（歌单详情），
+        // 早期的大小写不敏感匹配把 /toplist 错接到了后者
+        case "/toplist":
+            return try await client.toplist()
+
+        case "/toplist/detail":
+            return try await client.toplistDetail()
+
+        case "/artist/top/song":
+            return try await client.artistTopSong(id: int(p, "id") ?? 0)
+
         default:
             throw RouteError(route: route)
         }
