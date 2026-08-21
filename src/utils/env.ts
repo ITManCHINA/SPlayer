@@ -30,12 +30,20 @@ export const capacitorVersion = __CAPACITOR_VERSION__;
 export type NativeEnvInfo = {
   /** 系统版本，如 "17.0" */
   osVersion: string;
-  /** WebView 版本，iOS 下即真实 WebKit 版本 */
-  webViewVersion: string;
-  /** 设备型号，如 "iPhone13,4" */
+  /** 设备型号，如 "iPhone14,4" */
   model: string;
-  /** 操作系统名，如 "ios" */
+  /** 操作系统名，Device 插件返回小写标识如 "ios" */
   operatingSystem: string;
+  /** 规范化后的系统展示名，如 "iOS 16.5.1" */
+  osLabel: string;
+};
+
+/** Device 插件返回的是小写标识，映射为规范写法 */
+const OS_LABELS: Record<string, string> = {
+  ios: "iOS",
+  android: "Android",
+  mac: "macOS",
+  windows: "Windows",
 };
 
 /**
@@ -50,8 +58,14 @@ export const getNativeEnvInfo = async (): Promise<NativeEnvInfo | undefined> => 
   if (!isCapacitor) return undefined;
   try {
     const { Device } = await import("@capacitor/device");
-    const { osVersion, webViewVersion, model, operatingSystem } = await Device.getInfo();
-    return { osVersion, webViewVersion, model, operatingSystem };
+    const { osVersion, model, operatingSystem } = await Device.getInfo();
+    const name = OS_LABELS[operatingSystem] ?? operatingSystem;
+    return {
+      osVersion,
+      model,
+      operatingSystem,
+      osLabel: `${name} ${osVersion}`.trim(),
+    };
   } catch {
     return undefined;
   }

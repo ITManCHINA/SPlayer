@@ -188,6 +188,7 @@ import {
   getNativeEnvInfo,
   isCapacitor,
   isElectron,
+  userAgent,
   type NativeEnvInfo,
 } from "@/utils/env";
 import packageJson from "@/../package.json";
@@ -342,7 +343,7 @@ const envItems = computed<EnvItem[]>(() => [
   ...(isCapacitor
     ? [
         { label: "Capacitor", value: capacitorVersion },
-        { label: "WebKit", value: nativeEnv.value?.webViewVersion },
+        { label: "UA", value: userAgent },
       ]
     : [
         { label: "Electron", value: versions.electron },
@@ -352,11 +353,10 @@ const envItems = computed<EnvItem[]>(() => [
       ]),
   {
     label: "OS",
-    value: osInfo
-      ? `${osInfo.type} ${osInfo.arch} ${osInfo.release}`
-      : nativeEnv.value &&
-        `${nativeEnv.value.operatingSystem} ${nativeEnv.value.osVersion} (${nativeEnv.value.model})`,
+    value: osInfo ? `${osInfo.type} ${osInfo.arch} ${osInfo.release}` : nativeEnv.value?.osLabel,
   },
+  // 设备型号仅原生容器可得，如 iPhone14,4
+  ...(nativeEnv.value ? [{ label: "设备", value: nativeEnv.value.model }] : []),
 ]);
 
 // 复制环境信息

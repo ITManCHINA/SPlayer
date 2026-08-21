@@ -8,7 +8,10 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         guard let windowScene = scene as? UIWindowScene else { return }
 
         window = UIWindow(windowScene: windowScene)
-        window?.rootViewController = CAPBridgeViewController()
+        // 必须用 ViewController（CAPBridgeViewController 的子类），
+        // 它在 capacitorDidLoad() 中注册本地插件 NCMNativePlugin。
+        // 注意：本工程的根控制器由此处代码创建，Main.storyboard 的 customClass 不生效
+        window?.rootViewController = ViewController()
         window?.makeKeyAndVisible()
 
         SceneDelegateProxy.shared.scene(scene, willConnectTo: session, options: connectionOptions)
