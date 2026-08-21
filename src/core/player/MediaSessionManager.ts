@@ -314,6 +314,12 @@ class MediaSessionManager {
     // 发送到原生插件
     if (this.shouldUseNativeMedia()) {
       sendMediaPlayState(isPlaying ? "Playing" : "Paused");
+      return;
+    }
+
+    // Web API：iOS 锁屏与控制中心依赖此项显示正确的播放/暂停态
+    if ("mediaSession" in navigator) {
+      navigator.mediaSession.playbackState = isPlaying ? "playing" : "paused";
     }
   }
 

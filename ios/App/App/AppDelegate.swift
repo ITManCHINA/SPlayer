@@ -1,3 +1,4 @@
+import AVFoundation
 import UIKit
 import Capacitor
 
@@ -7,8 +8,25 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     var window: UIWindow?
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
-        // Override point for customization after application launch.
+        configureAudioSession()
         return true
+    }
+
+    /// 配置音频会话，使音频可在切后台与锁屏状态下继续播放
+    ///
+    /// Info.plist 里的 `UIBackgroundModes: audio` 只是声明能力，并不足以生效 ——
+    /// iOS 还会依据 AVAudioSession 的类别决定进入后台后是否放行音频，
+    /// 默认类别会在切后台时直接静音。
+    ///
+    /// 这里只设类别、不调 `setActive(true)`：类别是系统判断后台行为的依据，
+    /// 而会话会在 WKWebView 真正开始播放时被隐式激活。
+    /// 若在启动时就主动激活，会立刻抢占音频会话、打断用户正在听的其他应用。
+    private func configureAudioSession() {
+        do {
+            try AVAudioSession.sharedInstance().setCategory(.playback, mode: .default)
+        } catch {
+            CAPLog.print("[SPlayer] AVAudioSession 类别设置失败: \(error)")
+        }
     }
 
     func applicationWillResignActive(_ application: UIApplication) {
