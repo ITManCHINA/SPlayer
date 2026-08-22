@@ -11,6 +11,8 @@ env:
   # 跳过 Rust 原生模块编译：renderer 对 @emi 全是类型引用，
   # 而 @opencc 的 wasm 产物已预构建提交在 native/ferrous-opencc-wasm/pkg
   SKIP_NATIVE_BUILD: true
+  # 开启 iOS 条件编译，注入 __IS_IOS_BUILD__ = true
+  SPLAYER_IOS_BUILD: true
 
 jobs:
   build:
